@@ -1,0 +1,70 @@
+body {
+  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  font-size: 30px;
+  margin: 0;
+  text-align: center;
+}
+
+.app {
+  transform: perspective(500px) rotateX(40deg);
+}
+
+img {
+  margin: 20px 0;
+  max-width: 200px;
+}
+
+svg {
+  border: 20px solid #ccb089;
+  border-image-source: url(/wooden_frame.jpg);
+  border-image-slice: 50 65;
+  transform: rotateX(25deg) rotateZ(20deg);
+  transition: transform  1.2s;
+}
+
+.svg-polygons {
+  transition: all 1s ease-out;
+}
+
+polygon {
+  cursor: pointer;
+  fill-opacity: .4;
+  stroke: white;
+  stroke-width: .2;
+  transition: fill-opacity .4s;
+}
+
+polygon:hover {
+  fill-opacity: 1;
+}
+
+polygon.grass {
+  stroke: #009922;
+  fill: #009922;
+}
+
+polygon.stream {
+  stroke: #3f51b5;
+  fill: #3f51b5;
+}
+
+polygon.mountain {
+  stroke: #aa2211;
+  fill: #aa2211;
+}
+
+polygon.selected-tile {
+  fill-opacity: 1;
+  stroke: goldenrod;
+  stroke-width: 2px;
+}
+
+polygon.active-tile {
+  fill-opacity: 1;
+  stroke: purple;
+  stroke-width: 2px;
+}
+
+.character {
+  transform: rotateX(-15deg) rotateY(32deg) rotateZ(-7deg);
+}
