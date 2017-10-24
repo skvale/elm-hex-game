@@ -1,10 +1,11 @@
-module HexView exposing (viewHexagons, viewHex)
+module HexView exposing (viewHexagons)
 
-import Hexagons.Main exposing (..)
-import Hexagons.Grid exposing (..)
+import Dict
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (..)
+import Hexagons.Main exposing (..)
+import Hexagons.Grid exposing (..)
 import Model exposing (..)
 
 
@@ -17,10 +18,13 @@ viewHexagons : Model -> Svg Msg
 viewHexagons model =
     let
         view =
-            viewHex model.size model.clicked model.active
+            viewHex model.size model.clicked
 
         hexagons =
             Hexagons.Grid.list model.board
+
+        characters =
+            Dict.values model.characters
     in
         svg
             [ width <| (floor containerWidth |> toString) ++ "px"
@@ -28,7 +32,7 @@ viewHexagons model =
             ]
             [ g
                 [ transform (matrixTransform model), class "svg-polygons" ]
-                (viewActive model :: (List.map view hexagons))
+                ((List.map (viewCharacter model) characters) ++ (List.map view hexagons))
             ]
 
 
@@ -61,8 +65,8 @@ hexCorner tile size idx =
         String.join "," (List.map toString coords)
 
 
-viewHex : Float -> Maybe Axial -> Axial -> Hexagons.Grid.Tile HexContent -> Svg Msg
-viewHex size clicked active tile =
+viewHex : Float -> Maybe Axial -> Hexagons.Grid.Tile HexContent -> Svg Msg
+viewHex size clicked tile =
     polygon
         [ points (hexPoints tile size)
         , class
@@ -79,11 +83,11 @@ viewHex size clicked active tile =
         []
 
 
-viewActive : Model -> Svg Msg
-viewActive model =
-    g [ transform ("translate" ++ toString (axialToPoint model.size model.active)) ]
+viewCharacter : Model -> Character -> Svg Msg
+viewCharacter model character =
+    g [ transform ("translate" ++ toString (axialToPoint model.size character.location)) ]
         [ image
-            [ xlinkHref "/images/human.png"
+            [ xlinkHref character.imageHref
             , width "40px"
             , height "40px"
             , class "character"

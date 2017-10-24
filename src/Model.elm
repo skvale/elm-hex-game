@@ -31,21 +31,45 @@ type alias Model =
     , clicked : Maybe Axial
     , scrollX : Int
     , scrollY : Int
-    , active : Axial
+    , characters : Dict.Dict String Character
+    , activeCharacter : String
     , destination : Maybe Axial
     , path : List Axial
+    }
+
+
+type alias Character =
+    { location : Axial
+    , imageHref : String
+    , key : String
     }
 
 
 type Msg
     = NoOp
     | Move Keyboard.KeyCode
+    | Mover (Axial -> Axial)
     | Click (Tile HexContent)
     | Delete (Tile HexContent)
     | RandomLand Axial Int
     | SetDestination (Tile HexContent)
-    | MoveActive Axial Time.Time
+    | MoveCharacter String Axial Time.Time
     | ColorTile (Tile HexContent)
+
+
+human : Character
+human =
+    { location = startAxial, imageHref = "/images/human.png", key = "human" }
+
+
+wizard : Character
+wizard =
+    { location = startAxial, imageHref = "/images/wizard.png", key = "wizard" }
+
+
+stubCharacter : Character
+stubCharacter =
+    { location = startAxial, imageHref = "", key = "" }
 
 
 startAxial : Axial
@@ -108,7 +132,8 @@ init =
     , clicked = Maybe.Nothing
     , scrollX = getScrollX startAxial
     , scrollY = getScrollY startAxial
-    , active = startAxial
+    , characters = Dict.insert wizard.key wizard (Dict.insert human.key human Dict.empty)
+    , activeCharacter = "human"
     , destination = Maybe.Nothing
     , path = []
     }
@@ -118,82 +143,56 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case (Debug.log "" msg) of
-        Move direction ->
-            case direction of
-                68 ->
-                    let
-                        attempt =
-                            ( (Tuple.first model.active) + 1, Tuple.second model.active )
-
-                        active =
-                            if gridContains model.board attempt then
-                                attempt
-                            else
-                                model.active
-                    in
-                        { model
-                            | active = active
-                            , scrollX = getScrollX active
-                            , scrollY = getScrollY active
-                        }
-                            ! []
-
+        Move key ->
+            case key of
                 65 ->
-                    let
-                        attempt =
-                            ( (Tuple.first model.active) - 1, Tuple.second model.active )
+                    -- a
+                    update (Mover (\axial -> ( (Tuple.first axial) - 1, Tuple.second axial ))) model
 
-                        active =
-                            if gridContains model.board attempt then
-                                attempt
-                            else
-                                model.active
-                    in
-                        { model
-                            | active = active
-                            , scrollX = getScrollX active
-                            , scrollY = getScrollY active
-                        }
-                            ! []
+                67 ->
+                    -- c
+                    update (Mover (\axial -> ( (Tuple.first axial), Tuple.second axial + 1 ))) model
 
-                83 ->
-                    let
-                        attempt =
-                            ( (Tuple.first model.active), Tuple.second model.active + 1 )
+                68 ->
+                    -- d
+                    update (Mover (\axial -> ( (Tuple.first axial) + 1, Tuple.second axial ))) model
 
-                        active =
-                            if gridContains model.board attempt then
-                                attempt
-                            else
-                                model.active
-                    in
-                        { model
-                            | active = active
-                            , scrollX = getScrollX active
-                            , scrollY = getScrollY active
-                        }
-                            ! []
+                69 ->
+                    -- e
+                    update (Mover (\axial -> ( (Tuple.first axial) + 1, Tuple.second axial - 1 ))) model
 
-                87 ->
-                    let
-                        attempt =
-                            ( (Tuple.first model.active), Tuple.second model.active - 1 )
+                81 ->
+                    -- q
+                    update (Mover (\axial -> ( (Tuple.first axial), Tuple.second axial - 1 ))) model
 
-                        active =
-                            if gridContains model.board attempt then
-                                attempt
-                            else
-                                model.active
-                    in
-                        { model
-                            | active = active
-                            , scrollX = getScrollX active
-                            , scrollY = getScrollY active
-                        }
-                            ! []
+                90 ->
+                    -- z
+                    update (Mover (\axial -> ( (Tuple.first axial) - 1, Tuple.second axial + 1 ))) model
 
                 _ ->
                     model ! []
+
+        Mover neighborMaker ->
+            let
+                curr =
+                    Dict.get human.key model.characters
+                        |> Maybe.withDefault stubCharacter
+
+                attempt =
+                    neighborMaker curr.location
+
+                location =
+                    if gridContains model.board attempt then
+                        attempt
+                    else
+                        curr.location
+            in
+                { model
+                    | characters = Dict.insert curr.key { curr | location = location } model.characters
+                    , scrollX = getScrollX location
+                    , scrollY = getScrollY location
+                }
+                    ! []
 
         Click hex ->
             model
@@ -218,13 +217,17 @@ update msg model =
         SetDestination hex ->
             { model | destination = Just hex.coords } ! []
 
-        MoveActive coords time ->
+        MoveCharacter character coords time ->
             case model.destination of
                 Just somewhere ->
                     let
+                        curr =
+                            Dict.get character model.characters
+                                |> Maybe.withDefault stubCharacter
+
                         path =
                             if List.isEmpty model.path then
-                                case getPath model.board model.active coords of
+                                case getPath model.board curr.location coords of
                                     Just aPath ->
                                         aPath
 
@@ -244,7 +247,7 @@ update msg model =
                                 case tail of
                                     Just rest ->
                                         { model
-                                            | active = coord
+                                            | characters = Dict.insert curr.key { curr | location = coord } model.characters
                                             , path = rest
                                             , scrollX = getScrollX coord
                                             , scrollY = getScrollY coord
