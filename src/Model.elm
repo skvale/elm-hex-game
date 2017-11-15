@@ -42,6 +42,11 @@ type alias Character =
     { location : Axial
     , imageHref : String
     , key : String
+    , health : Int
+    , totalHealth : Int
+    , magic : Int
+    , totalMagic : Int
+    , experience : Int
     }
 
 
@@ -59,17 +64,41 @@ type Msg
 
 human : Character
 human =
-    { location = startAxial, imageHref = "/images/human.png", key = "human" }
+    { location = startAxial
+    , imageHref = "images/human.png"
+    , key = "human"
+    , health = 10
+    , totalHealth = 10
+    , magic = 4
+    , totalMagic = 4
+    , experience = 0
+    }
 
 
 wizard : Character
 wizard =
-    { location = startAxial, imageHref = "/images/wizard.png", key = "wizard" }
+    { location = startAxial
+    , imageHref = "images/wizard.png"
+    , key = "wizard"
+    , health = 6
+    , totalHealth = 6
+    , magic = 12
+    , totalMagic = 12
+    , experience = 0
+    }
 
 
 stubCharacter : Character
 stubCharacter =
-    { location = startAxial, imageHref = "", key = "" }
+    { location = startAxial
+    , imageHref = ""
+    , key = ""
+    , health = 0
+    , totalHealth = 0
+    , magic = 0
+    , totalMagic = 0
+    , experience = 0
+    }
 
 
 startAxial : Axial
@@ -133,7 +162,7 @@ init =
     , scrollX = getScrollX startAxial
     , scrollY = getScrollY startAxial
     , characters = Dict.insert wizard.key wizard (Dict.insert human.key human Dict.empty)
-    , activeCharacter = "human"
+    , activeCharacter = human.key
     , destination = Maybe.Nothing
     , path = []
     }

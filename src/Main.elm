@@ -3,7 +3,8 @@ module Main exposing (..)
 import Html exposing (program, Html)
 import Html.Attributes exposing (..)
 import Model exposing (..)
-import HexView exposing (..)
+import HexView exposing (viewHexagons)
+import Stats exposing (viewStats)
 import Keyboard
 import Time exposing (every, millisecond)
 
@@ -11,7 +12,9 @@ import Time exposing (every, millisecond)
 view : Model -> Html Msg
 view model =
     Html.div [ class "app" ]
-        [ viewHexagons model ]
+        [ viewStats model
+        , viewHexagons model
+        ]
 
 
 main : Program Never Model Msg

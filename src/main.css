@@ -6,6 +6,38 @@ body {
 }
 
 .app {
+
+}
+
+.stats {
+  position: fixed;
+  height: 100vh;
+  width: 132px;
+  text-align: left;
+  padding-left: 8px;
+  box-shadow: 0 2px 1px 2px #aaa;
+}
+
+.stats-header {
+  padding-bottom: 16px;
+  font-size: 18px;
+}
+
+.stats-active-player {
+  font-size: 12px;
+}
+
+.stats-health {
+  font-size: 12px;
+}
+
+.stats-magic {
+  font-size: 12px;
+}
+
+.hexagons {
+  position: fixed;
+  left: 320px;
   transform: perspective(500px) rotateX(40deg);
 }
 

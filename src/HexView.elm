@@ -1,6 +1,7 @@
 module HexView exposing (viewHexagons)
 
 import Dict
+import Html exposing (div)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (..)
@@ -26,13 +27,15 @@ viewHexagons model =
         characters =
             Dict.values model.characters
     in
-        svg
-            [ width <| (floor containerWidth |> toString) ++ "px"
-            , height <| (floor containerHeight |> toString) ++ "px"
-            ]
-            [ g
-                [ transform (matrixTransform model), class "svg-polygons" ]
-                ((List.map (viewCharacter model) characters) ++ (List.map view hexagons))
+        div [ class "hexagons" ]
+            [ svg
+                [ width <| (floor containerWidth |> toString) ++ "px"
+                , height <| (floor containerHeight |> toString) ++ "px"
+                ]
+                [ g
+                    [ transform (matrixTransform model), class "svg-polygons" ]
+                    ((List.map (viewCharacter model) characters) ++ (List.map view hexagons))
+                ]
             ]
 
 
