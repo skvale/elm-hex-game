@@ -9,18 +9,26 @@ import Model exposing (..)
 
 viewStats : Model -> Html msg
 viewStats model =
-  let
-      character =
-        Dict.get model.activeCharacter model.characters
-  in
+    let
+        maybeCharacter =
+            Dict.get model.activeCharacter model.characters
+    in
+        case maybeCharacter of
+            Just character ->
+                div [ class "stats" ]
+                    [ header
+                    , activePlayer character
+                    , health character
+                    , magic character
+                    , experience character
+                    , location character
+                    , items model.items character
+                    ]
 
-    div [ class "stats" ]
-        [ header
-        , activePlayer character
-        , health character
-        , magic character
-        , experience character
-        ]
+            _ ->
+                div [ class "stats" ]
+                    [ header
+                    ]
 
 
 header : Html msg
@@ -29,52 +37,61 @@ header =
         [ text "Game stats" ]
 
 
-activePlayer : Maybe Character -> Html msg
-activePlayer maybeCharacter =
-  let
+activePlayer : Character -> Html msg
+activePlayer character =
+    let
         display =
-          case maybeCharacter of
-            Just character ->
-                character.key
-            _ ->
-              "None"
-  in
-      div [ class "stats-active-player" ] [ text ("Active: " ++ display) ]
+            character.key
+    in
+        div [ class "stats-li stats-active-player" ] [ text ("Active: " ++ display) ]
 
-health : Maybe Character -> Html msg
-health maybeCharacter =
-  let
+
+health : Character -> Html msg
+health character =
+    let
         display =
-          case maybeCharacter of
-            Just character ->
-                (toString character.health) ++ " / " ++ (toString character.totalHealth)
-            _ ->
-              "-"
-  in
-      div [ class "stats-health" ] [ text ("Health: " ++ display) ]
+            (toString character.health) ++ " / " ++ (toString character.totalHealth)
+    in
+        div [ class "stats-li stats-health" ] [ text ("Health: " ++ display) ]
 
-magic : Maybe Character -> Html msg
-magic maybeCharacter =
-  let
+
+magic : Character -> Html msg
+magic character =
+    let
         display =
-          case maybeCharacter of
-            Just character ->
-                (toString character.magic) ++ " / " ++ (toString character.totalMagic)
-            _ ->
-              "-"
-  in
-      div [ class "stats-magic" ] [ text ("Magic: " ++ display) ]
+            (toString character.magic) ++ " / " ++ (toString character.totalMagic)
+    in
+        div [ class "stats-li stats-magic" ] [ text ("Magic: " ++ display) ]
 
 
-experience : Maybe Character -> Html msg
-experience maybeCharacter =
-  let
+experience : Character -> Html msg
+experience character =
+    let
         display =
-          case maybeCharacter of
-            Just character ->
-                (toString character.experience) ++ " / " ++ ("100")
-            _ ->
-              "-"
-  in
-      div [ class "stats-magic" ] [ text ("Experience: " ++ display) ]
+            (toString character.experience) ++ " / " ++ ("100")
+    in
+        div [ class "stats-li stats-experience" ] [ text ("Experience: " ++ display) ]
 
+
+location : Character -> Html msg
+location character =
+    let
+        display =
+            toString character.location
+    in
+        div [ class "stats-li stats-location" ] [ text ("Location: " ++ display) ]
+
+
+items : Dict.Dict String Item -> Character -> Html msg
+items items character =
+    let
+        display =
+            List.map
+                (\item ->
+                    div [ class "stats-item" ]
+                        [ Dict.get item items |> Maybe.map .name |> toString |> text
+                        ]
+                )
+                character.items
+    in
+        div [ class "stats-li stats-items" ] ([ text "Items: " ] ++ display)

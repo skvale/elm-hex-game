@@ -76,7 +76,7 @@ viewHex size clicked tile =
             (landTypeToClass tile.content.landType
                 ++ " "
                 ++ if axialIsEqual clicked (Just tile.coords) then
-                    "selected-tilef "
+                    "selected-tile "
                    else
                     ""
             )

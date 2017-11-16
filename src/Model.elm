@@ -23,6 +23,12 @@ type alias HexContent =
     }
 
 
+type alias Item =
+    { name : String
+    , attributes : List String
+    }
+
+
 type alias Model =
     { board : Grid HexContent
     , size : Float
@@ -35,6 +41,7 @@ type alias Model =
     , activeCharacter : String
     , destination : Maybe Axial
     , path : List Axial
+    , items : Dict.Dict String Item
     }
 
 
@@ -47,6 +54,7 @@ type alias Character =
     , magic : Int
     , totalMagic : Int
     , experience : Int
+    , items : List String
     }
 
 
@@ -64,14 +72,15 @@ type Msg
 
 human : Character
 human =
-    { location = startAxial
+    { location = ( 0, 2 )
     , imageHref = "images/human.png"
-    , key = "human"
+    , key = "Brutus"
     , health = 10
     , totalHealth = 10
     , magic = 4
     , totalMagic = 4
     , experience = 0
+    , items = [ "rock" ]
     }
 
 
@@ -79,12 +88,13 @@ wizard : Character
 wizard =
     { location = startAxial
     , imageHref = "images/wizard.png"
-    , key = "wizard"
+    , key = "Marius"
     , health = 6
     , totalHealth = 6
     , magic = 12
     , totalMagic = 12
     , experience = 0
+    , items = []
     }
 
 
@@ -98,6 +108,7 @@ stubCharacter =
     , magic = 0
     , totalMagic = 0
     , experience = 0
+    , items = []
     }
 
 
@@ -113,7 +124,7 @@ hexSize =
 
 containerWidth : Float
 containerWidth =
-    550
+    650
 
 
 containerHeight : Float
@@ -165,6 +176,7 @@ init =
     , activeCharacter = human.key
     , destination = Maybe.Nothing
     , path = []
+    , items = Dict.insert "rock" (Item "Rock" []) Dict.empty
     }
         ! []
 

@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Model exposing (..)
 import HexView exposing (viewHexagons)
 import Stats exposing (viewStats)
+import TurnOrder exposing (viewTurnOrder)
 import Keyboard
 import Time exposing (every, millisecond)
 
@@ -14,6 +15,7 @@ view model =
     Html.div [ class "app" ]
         [ viewStats model
         , viewHexagons model
+        , viewTurnOrder model
         ]
 
 

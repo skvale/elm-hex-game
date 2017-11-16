@@ -1,0 +1,23 @@
+.stats {
+  position: fixed;
+  height: 35vh;
+  margin: 4px;
+  width: 132px;
+  text-align: left;
+  padding-left: 8px;
+}
+
+.stats-header {
+  margin: 8px 0 16px 0;
+  font-size: 18px;
+}
+
+.stats-li {
+  font-size: 12px;
+  margin: 8px 2px;
+}
+
+.stats-item {
+  font-size: 9px;
+  padding-left: 4px;
+}
