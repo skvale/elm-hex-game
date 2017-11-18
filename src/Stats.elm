@@ -3,8 +3,8 @@ module Stats exposing (viewStats)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 import Model exposing (..)
+import Hexagons.HexContent exposing (..)
 
 
 viewStats : Model -> Html msg

@@ -7,6 +7,7 @@ import Svg.Attributes exposing (..)
 import Svg.Events exposing (..)
 import Hexagons.Main exposing (..)
 import Hexagons.Grid exposing (..)
+import Hexagons.HexContent exposing (..)
 import Model exposing (..)
 
 
@@ -32,24 +33,25 @@ viewHexagons model =
                 [ width <| (floor containerWidth |> toString) ++ "px"
                 , height <| (floor containerHeight |> toString) ++ "px"
                 ]
-                [ g
+                [ defs [] (List.map character characters)
+                , g
                     [ transform (matrixTransform model), class "svg-polygons" ]
-                    ((List.map (viewCharacter model) characters) ++ (List.map view hexagons))
+                    ((List.map view hexagons) ++ (List.map (viewCharacter model) characters))
                 ]
             ]
 
 
-hexPoints : Hexagons.Grid.Tile HexContent -> Float -> String
-hexPoints tile size =
+hexPoints : Axial -> Float -> String
+hexPoints axial size =
     let
         getCornerPoint =
-            hexCorner tile size
+            hexCorner axial size
     in
         String.join " " (List.map getCornerPoint (List.range 1 6))
 
 
-hexCorner : Hexagons.Grid.Tile HexContent -> Float -> Int -> String
-hexCorner tile size idx =
+hexCorner : Axial -> Float -> Int -> String
+hexCorner axial size idx =
     let
         degree =
             60.0 * toFloat idx + 30.0
@@ -58,7 +60,7 @@ hexCorner tile size idx =
             pi / 180 * degree
 
         center =
-            axialToPoint size tile.coords
+            axialToPoint size axial
 
         coords =
             [ Tuple.first center + size + size * cos (radians)
@@ -71,10 +73,10 @@ hexCorner tile size idx =
 viewHex : Float -> Maybe Axial -> Hexagons.Grid.Tile HexContent -> Svg Msg
 viewHex size clicked tile =
     polygon
-        [ points (hexPoints tile size)
+        [ points (hexPoints tile.coords size)
         , class
             (landTypeToClass tile.content.landType
-                ++ " "
+                ++ " polygon-land "
                 ++ if axialIsEqual clicked (Just tile.coords) then
                     "selected-tile "
                    else
@@ -84,19 +86,6 @@ viewHex size clicked tile =
         , Svg.Events.onMouseOver <| Delete tile
         ]
         []
-
-
-viewCharacter : Model -> Character -> Svg Msg
-viewCharacter model character =
-    g [ transform ("translate" ++ toString (axialToPoint model.size character.location)) ]
-        [ image
-            [ xlinkHref character.imageHref
-            , width "40px"
-            , height "40px"
-            , class "character"
-            ]
-            []
-        ]
 
 
 landTypeToClass : LandType -> String
@@ -113,3 +102,21 @@ landTypeToClass landType =
 
         _ ->
             "land"
+
+
+character : Character -> Svg msg
+character character =
+    pattern [ id character.key, width "100%", height "100%" ]
+        [ image [ xlinkHref character.imageHref, class "character", width "50", height "50", preserveAspectRatio "none" ] []
+        ]
+
+
+viewCharacter : Model -> Character -> Svg Msg
+viewCharacter model character =
+    polygon
+        [ points (hexPoints character.location model.size)
+        , onClick <| ClickCharacter character
+        , class "polygon-character"
+        , fill ("url(#" ++ character.key ++ ")")
+        ]
+        []

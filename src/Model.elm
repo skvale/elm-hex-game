@@ -8,24 +8,25 @@ import Hexagons.Path exposing (..)
 import Random
 import Keyboard
 import Time
-
-
-type LandType
-    = Stream
-    | Grass
-    | Mountain
-    | Land
-
-
-type alias HexContent =
-    { players : List Int
-    , landType : LandType
-    }
+import Hexagons.HexContent exposing (..)
 
 
 type alias Item =
     { name : String
     , attributes : List String
+    }
+
+
+type alias Character =
+    { location : Axial
+    , imageHref : String
+    , key : String
+    , health : Int
+    , totalHealth : Int
+    , magic : Int
+    , totalMagic : Int
+    , experience : Int
+    , items : List String
     }
 
 
@@ -45,19 +46,6 @@ type alias Model =
     }
 
 
-type alias Character =
-    { location : Axial
-    , imageHref : String
-    , key : String
-    , health : Int
-    , totalHealth : Int
-    , magic : Int
-    , totalMagic : Int
-    , experience : Int
-    , items : List String
-    }
-
-
 type Msg
     = NoOp
     | Move Keyboard.KeyCode
@@ -68,6 +56,7 @@ type Msg
     | SetDestination (Tile HexContent)
     | MoveCharacter String Axial Time.Time
     | ColorTile (Tile HexContent)
+    | ClickCharacter Character
 
 
 human : Character
@@ -151,9 +140,9 @@ fillInitialBoardHelper : Int -> Int -> Int -> Grid HexContent -> Grid HexContent
 fillInitialBoardHelper top i j tmp =
     if j > 0 then
         if i > 0 then
-            fillInitialBoardHelper top (i - 1) j (set { players = [], landType = Land } ( i, j ) tmp)
+            fillInitialBoardHelper top (i - 1) j (set { character = Maybe.Nothing, landType = Land } ( i, j ) tmp)
         else
-            fillInitialBoardHelper top top (j - 1) (set { players = [], landType = Land } ( i, j ) tmp)
+            fillInitialBoardHelper top top (j - 1) (set { character = Maybe.Nothing, landType = Land } ( i, j ) tmp)
     else
         tmp
 
@@ -165,13 +154,13 @@ fillInitialBoard i j =
 
 init : ( Model, Cmd Msg )
 init =
-    { board = fillInitialBoard 20 20
+    { board = fillInitialBoard 20 20 |> set { character = Just human.key, landType = Land } human.location |> set { character = Just wizard.key, landType = Land } wizard.location
     , size = hexSize
     , rotateX = 0
     , rotateZ = 0
-    , clicked = Maybe.Nothing
-    , scrollX = getScrollX startAxial
-    , scrollY = getScrollY startAxial
+    , clicked = Just human.location
+    , scrollX = getScrollX human.location
+    , scrollY = getScrollY human.location
     , characters = Dict.insert wizard.key wizard (Dict.insert human.key human Dict.empty)
     , activeCharacter = human.key
     , destination = Maybe.Nothing
@@ -248,7 +237,7 @@ update msg model =
         RandomLand coords i ->
             let
                 tile =
-                    get model.board coords |> Maybe.withDefault { players = [], landType = Land }
+                    get model.board coords |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
 
                 board =
                     set { tile | landType = getALandType i } coords model.board
@@ -282,6 +271,15 @@ update msg model =
 
                         tail =
                             List.tail path
+
+                        newTile =
+                            get model.board coords
+                                |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
+
+                        prevTile =
+                            get model.board curr.location
+                                |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
+
                     in
                         case maybeCoord of
                             Just coord ->
@@ -292,6 +290,9 @@ update msg model =
                                             , path = rest
                                             , scrollX = getScrollX coord
                                             , scrollY = getScrollY coord
+                                            , board =
+                                                set { newTile | character = Just curr.key } coord model.board
+                                                    |> set {prevTile | character = Maybe.Nothing } curr.location
                                         }
                                             ! []
 
@@ -315,6 +316,15 @@ update msg model =
                    else
                     []
                   )
+
+        ClickCharacter character ->
+            { model
+                | activeCharacter = character.key
+                , clicked = Just character.location
+                , scrollX = getScrollX character.location
+                , scrollY = getScrollY character.location
+            }
+                ! []
 
         _ ->
             model ! []

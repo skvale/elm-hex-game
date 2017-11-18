@@ -6,6 +6,7 @@ import Set exposing (Set)
 import Tuple exposing (first, second)
 import Hexagons.Main exposing (..)
 import Hexagons.Grid exposing (..)
+import Hexagons.HexContent exposing (..)
 
 
 {--Taken from https://github.com/krisajenkins/elm-astar
@@ -19,25 +20,36 @@ type alias Path =
 
 
 getPath :
-    Grid a
+    Grid HexContent
     -> Axial
     -> Axial
     -> Maybe Path
 getPath grid start end =
-    if pathInGrid grid (axialLine start end) then
-        Just (axialLine start end)
-    else
-        initialModel start
-            |> astar pythagoreanCost (axialNeighbors grid) end
-            |> Maybe.map Array.toList
+    initialModel start
+        |> astar pythagoreanCost (axialNeighbors grid) end
+        |> Maybe.map Array.toList
 
 
-pathInGrid : Grid a -> List Axial -> Bool
-pathInGrid grid list =
-    List.all (gridContains grid) list
+hasCharacter : Grid HexContent -> Axial -> Bool
+hasCharacter grid axial =
+    let
+        maybeHexContent =
+            Hexagons.Grid.get grid axial
+    in
+        case maybeHexContent of
+            Just hexContent ->
+                case hexContent.character of
+                    Just c ->
+                        False
+
+                    _ ->
+                        True
+
+            _ ->
+                True
 
 
-axialNeighbors : Grid a -> Axial -> Set Axial
+axialNeighbors : Grid HexContent -> Axial -> Set Axial
 axialNeighbors grid a =
     [ ( Tuple.first a, Tuple.second a - 1 )
     , ( Tuple.first a + 1, Tuple.second a - 1 )
@@ -47,6 +59,7 @@ axialNeighbors grid a =
     , ( Tuple.first a - 1, Tuple.second a )
     ]
         |> List.filter (gridContains grid)
+        |> List.filter (hasCharacter grid)
         |> Set.fromList
 
 
