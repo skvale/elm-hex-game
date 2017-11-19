@@ -16,7 +16,6 @@ type alias Item =
     , attributes : List String
     }
 
-
 type alias Character =
     { location : Axial
     , imageHref : String
@@ -43,6 +42,7 @@ type alias Model =
     , destination : Maybe Axial
     , path : List Axial
     , items : Dict.Dict String Item
+    , baddies : Dict.Dict String Character
     }
 
 
@@ -57,33 +57,60 @@ type Msg
     | MoveCharacter String Axial Time.Time
     | ColorTile (Tile HexContent)
     | ClickCharacter Character
+    | ClickBaddie Character
 
 
 human : Character
 human =
-    { location = ( 0, 2 )
-    , imageHref = "images/human.png"
-    , key = "Brutus"
-    , health = 10
-    , totalHealth = 10
-    , magic = 4
-    , totalMagic = 4
-    , experience = 0
-    , items = [ "rock" ]
+    { stubCharacter
+        | location = ( 0, 2 )
+        , imageHref = "images/human.png"
+        , key = "Brutus"
+        , health = 10
+        , totalHealth = 10
+        , magic = 4
+        , totalMagic = 4
+        , items = [ "rock" ]
     }
 
 
 wizard : Character
 wizard =
-    { location = startAxial
-    , imageHref = "images/wizard.png"
-    , key = "Marius"
-    , health = 6
-    , totalHealth = 6
-    , magic = 12
-    , totalMagic = 12
+    { stubCharacter
+        | location = startAxial
+        , imageHref = "images/wizard.png"
+        , key = "Marius"
+        , health = 6
+        , totalHealth = 6
+        , magic = 12
+        , totalMagic = 12
+    }
+
+
+thief : Character
+thief =
+    { stubCharacter
+        | location = ( 1, 1 )
+        , imageHref = "images/thief.png"
+        , key = "Farda"
+        , health = 8
+        , totalHealth = 8
+        , magic = 3
+        , totalMagic = 3
+    }
+
+
+dragon : Character
+dragon =
+    { location = ( 3, 4 )
+    , imageHref = "images/dragon.png"
+    , key = "Dragon"
+    , health = 60
+    , totalHealth = 60
+    , magic = 120
+    , totalMagic = 120
     , experience = 0
-    , items = []
+    , items = [ "gold" ]
     }
 
 
@@ -154,14 +181,20 @@ fillInitialBoard i j =
 
 init : ( Model, Cmd Msg )
 init =
-    { board = fillInitialBoard 20 20 |> set { character = Just human.key, landType = Land } human.location |> set { character = Just wizard.key, landType = Land } wizard.location
+    { board =
+        fillInitialBoard 20 20
+            |> set { character = Just human.key, landType = Land } human.location
+            |> set { character = Just wizard.key, landType = Land } wizard.location
+            |> set { character = Just thief.key, landType = Land } thief.location
+            |> set { character = Just dragon.key, landType = Land } dragon.location
     , size = hexSize
     , rotateX = 0
     , rotateZ = 0
     , clicked = Just human.location
     , scrollX = getScrollX human.location
     , scrollY = getScrollY human.location
-    , characters = Dict.insert wizard.key wizard (Dict.insert human.key human Dict.empty)
+    , baddies = Dict.insert dragon.key dragon Dict.empty
+    , characters = Dict.empty |> Dict.insert wizard.key wizard |> Dict.insert human.key human |> Dict.insert thief.key thief
     , activeCharacter = human.key
     , destination = Maybe.Nothing
     , path = []
@@ -279,7 +312,6 @@ update msg model =
                         prevTile =
                             get model.board curr.location
                                 |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
-
                     in
                         case maybeCoord of
                             Just coord ->
@@ -292,7 +324,7 @@ update msg model =
                                             , scrollY = getScrollY coord
                                             , board =
                                                 set { newTile | character = Just curr.key } coord model.board
-                                                    |> set {prevTile | character = Maybe.Nothing } curr.location
+                                                    |> set { prevTile | character = Maybe.Nothing } curr.location
                                         }
                                             ! []
 
@@ -318,13 +350,31 @@ update msg model =
                   )
 
         ClickCharacter character ->
-            { model
-                | activeCharacter = character.key
-                , clicked = Just character.location
-                , scrollX = getScrollX character.location
-                , scrollY = getScrollY character.location
-            }
-                ! []
+            case List.length model.path of
+                0 ->
+                    { model
+                        | activeCharacter = character.key
+                        , clicked = Just character.location
+                        , scrollX = getScrollX character.location
+                        , scrollY = getScrollY character.location
+                    }
+                        ! []
+                _ ->
+                    model ! []
+
+        ClickBaddie baddie ->
+            let
+                currCharacter =
+                    Dict.get model.activeCharacter model.characters
+                        |> Maybe.withDefault stubCharacter
+
+                newHealth =
+                    currCharacter.health - 2
+            in
+                { model
+                    | characters = Dict.insert currCharacter.key { currCharacter | health = newHealth } model.characters
+                }
+                    ! []
 
         _ ->
             model ! []

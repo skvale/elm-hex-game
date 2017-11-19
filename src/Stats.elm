@@ -43,7 +43,10 @@ activePlayer character =
         display =
             character.key
     in
-        div [ class "stats-li stats-active-player" ] [ text ("Active: " ++ display) ]
+        div [ class "stats-li stats-active-player" ]
+            [ text ("Active: " ++ display)
+            , img [ src character.imageHref, class "stats-active-player-img" ] []
+            ]
 
 
 health : Character -> Html msg

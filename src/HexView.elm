@@ -27,16 +27,19 @@ viewHexagons model =
 
         characters =
             Dict.values model.characters
+
+        baddies =
+            Dict.values model.baddies
     in
         div [ class "hexagons" ]
             [ svg
                 [ width <| (floor containerWidth |> toString) ++ "px"
                 , height <| (floor containerHeight |> toString) ++ "px"
                 ]
-                [ defs [] (List.map character characters)
+                [ defs [] ((List.map character characters) ++ (List.map baddie baddies))
                 , g
                     [ transform (matrixTransform model), class "svg-polygons" ]
-                    ((List.map view hexagons) ++ (List.map (viewCharacter model) characters))
+                    ((List.map view hexagons) ++ (List.map (viewCharacter model) characters) ++ (List.map (viewBaddie model) baddies))
                 ]
             ]
 
@@ -110,6 +113,11 @@ character character =
         [ image [ xlinkHref character.imageHref, class "character", width "50", height "50", preserveAspectRatio "none" ] []
         ]
 
+baddie : Character -> Svg msg
+baddie baddie =
+    pattern [ id baddie.key, width "100%", height "100%" ]
+        [ image [ xlinkHref baddie.imageHref, class "baddie", width "50", height "50", preserveAspectRatio "none" ] []
+        ]
 
 viewCharacter : Model -> Character -> Svg Msg
 viewCharacter model character =
@@ -118,5 +126,15 @@ viewCharacter model character =
         , onClick <| ClickCharacter character
         , class "polygon-character"
         , fill ("url(#" ++ character.key ++ ")")
+        ]
+        []
+
+viewBaddie : Model -> Character -> Svg Msg
+viewBaddie model baddie =
+    polygon
+        [ points (hexPoints baddie.location model.size)
+        , class "polygon-baddie"
+        , ClickBaddie baddie |> onClick
+        , fill ("url(#" ++ baddie.key ++ ")")
         ]
         []

@@ -22,11 +22,10 @@ img {
 
 svg {
   border: 2px solid #000;
-  border-image-slice: 50 65;
-  box-shadow: inset 4px 4px 17px 0px #aaa;
+  box-shadow: inset 4px 4px 17px 0px #aaa, 4px 4px 17px 0px #aaa;
   transform: rotateX(25deg) rotateZ(20deg);
   transition: transform  1.2s;
-  z-index: 1
+  z-index: 1;
 }
 
 .svg-polygons {
@@ -34,6 +33,12 @@ svg {
 }
 
 .polygon-character {
+  cursor: pointer;
+}
+
+.polygon-baddie {
+  stroke: red;
+  stroke-width: 1px;
   cursor: pointer;
 }
 
