@@ -19,7 +19,6 @@ viewStats model =
                     [ header
                     , activePlayer character
                     , health character
-                    , magic character
                     , experience character
                     , location character
                     , items model.items character
@@ -56,15 +55,6 @@ health character =
             (toString character.health) ++ " / " ++ (toString character.totalHealth)
     in
         div [ class "stats-li stats-health" ] [ text ("Health: " ++ display) ]
-
-
-magic : Character -> Html msg
-magic character =
-    let
-        display =
-            (toString character.magic) ++ " / " ++ (toString character.totalMagic)
-    in
-        div [ class "stats-li stats-magic" ] [ text ("Magic: " ++ display) ]
 
 
 experience : Character -> Html msg

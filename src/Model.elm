@@ -16,16 +16,16 @@ type alias Item =
     , attributes : List String
     }
 
+
 type alias Character =
     { location : Axial
     , imageHref : String
     , key : String
     , health : Int
     , totalHealth : Int
-    , magic : Int
-    , totalMagic : Int
     , experience : Int
     , items : List String
+    , moved : Int
     }
 
 
@@ -64,26 +64,21 @@ human : Character
 human =
     { stubCharacter
         | location = ( 0, 2 )
-        , imageHref = "images/human.png"
-        , key = "Brutus"
+        , imageHref = "images/dog3.png"
+        , key = "Roy"
         , health = 10
         , totalHealth = 10
-        , magic = 4
-        , totalMagic = 4
-        , items = [ "rock" ]
     }
 
 
 wizard : Character
 wizard =
     { stubCharacter
-        | location = startAxial
-        , imageHref = "images/wizard.png"
-        , key = "Marius"
+        | location = ( 1, 2 )
+        , imageHref = "images/dog2.png"
+        , key = "Taff"
         , health = 6
         , totalHealth = 6
-        , magic = 12
-        , totalMagic = 12
     }
 
 
@@ -91,46 +86,46 @@ thief : Character
 thief =
     { stubCharacter
         | location = ( 1, 1 )
-        , imageHref = "images/thief.png"
-        , key = "Farda"
+        , imageHref = "images/dog1.png"
+        , key = "Wisp"
         , health = 8
         , totalHealth = 8
-        , magic = 3
-        , totalMagic = 3
     }
 
 
-dragon : Character
-dragon =
-    { location = ( 3, 4 )
-    , imageHref = "images/dragon.png"
-    , key = "Dragon"
+sheep1 : Character
+sheep1 =
+    { stubCharacter
+    | location = ( 3, 4 )
+    , imageHref = "images/sheep1.png"
+    , key = "sheep1"
     , health = 60
     , totalHealth = 60
-    , magic = 120
-    , totalMagic = 120
-    , experience = 0
-    , items = [ "gold" ]
+    , items = [ ]
     }
 
+sheep2 : Character
+sheep2 =
+    { stubCharacter
+    | location = ( 4, 4 )
+    , imageHref = "images/sheep2.png"
+    , key = "sheep2"
+    , health = 60
+    , totalHealth = 60
+    , items = [ ]
+    }
 
 stubCharacter : Character
 stubCharacter =
-    { location = startAxial
+    { location = ( 0, 0 )
     , imageHref = ""
     , key = ""
     , health = 0
     , totalHealth = 0
-    , magic = 0
-    , totalMagic = 0
     , experience = 0
     , items = []
+    , moved = 0
     }
-
-
-startAxial : Axial
-startAxial =
-    ( 0, 1 )
 
 
 hexSize : Float
@@ -186,14 +181,15 @@ init =
             |> set { character = Just human.key, landType = Land } human.location
             |> set { character = Just wizard.key, landType = Land } wizard.location
             |> set { character = Just thief.key, landType = Land } thief.location
-            |> set { character = Just dragon.key, landType = Land } dragon.location
+            |> set { character = Just sheep1.key, landType = Land } sheep1.location
+            |> set { character = Just sheep2.key, landType = Land } sheep2.location
     , size = hexSize
     , rotateX = 0
     , rotateZ = 0
     , clicked = Just human.location
     , scrollX = getScrollX human.location
     , scrollY = getScrollY human.location
-    , baddies = Dict.insert dragon.key dragon Dict.empty
+    , baddies = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
     , characters = Dict.empty |> Dict.insert wizard.key wizard |> Dict.insert human.key human |> Dict.insert thief.key thief
     , activeCharacter = human.key
     , destination = Maybe.Nothing
@@ -260,8 +256,6 @@ update msg model =
         Click hex ->
             model
                 |> update (SetDestination hex)
-                |> Tuple.first
-                |> update (ColorTile hex)
 
         Delete hex ->
             { model | board = model.board } ! []
@@ -318,7 +312,7 @@ update msg model =
                                 case tail of
                                     Just rest ->
                                         { model
-                                            | characters = Dict.insert curr.key { curr | location = coord } model.characters
+                                            | characters = Dict.insert curr.key { curr | location = coord, moved = curr.moved + 1 } model.characters
                                             , path = rest
                                             , scrollX = getScrollX coord
                                             , scrollY = getScrollY coord
@@ -359,6 +353,7 @@ update msg model =
                         , scrollY = getScrollY character.location
                     }
                         ! []
+
                 _ ->
                     model ! []
 
@@ -378,3 +373,12 @@ update msg model =
 
         _ ->
             model ! []
+
+
+getCharacters : Model -> List Character
+getCharacters model =
+    let
+        characters =
+            Dict.values model.characters
+    in
+        characters

@@ -3,12 +3,6 @@ body {
   margin: 0;
 }
 
-.turn-order {
-  position: fixed;
-  right: 0;
-  margin: 8px;
-}
-
 .hexagons {
   position: fixed;
   left: 200px;
@@ -83,4 +77,38 @@ polygon.active-tile {
 
 .character {
   transform: rotateX(50deg) rotateY(45deg) rotateZ(-24deg) scale(0.8);
+}
+
+.baddie {
+  transform: rotateX(48deg) rotateY(50deg) rotateZ(-37deg) scale(0.8) translate(-2px, 12px);
+}
+
+.turn-details {
+  position: fixed;
+  right: 0;
+  margin: 8px;
+}
+
+.turn-details-character {
+  align-items: center;
+  cursor: pointer;
+  background-color: ghostwhite;
+  border: 1px dashed darkblue;
+  display: flex;
+  font-size: 12px;
+  height: 50px;
+  padding: 16px;
+  width: 100px;
+}
+
+.turn-details-character img {
+  background-color: ghostwhite;
+  border-radius: 8px;
+  height: 40px;
+  margin-right: 8px;
+}
+
+.turn-details-active {
+  background-color: blue;
+  color: white;
 }
