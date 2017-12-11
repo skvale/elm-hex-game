@@ -7,7 +7,6 @@ import Hexagons.Grid exposing (..)
 import Hexagons.Path exposing (..)
 import Random
 import Keyboard
-import Time
 import Hexagons.HexContent exposing (..)
 
 
@@ -26,6 +25,8 @@ type alias Animal =
     , experience : Int
     , items : List String
     , moved : Int
+    , path : List Axial
+    , destination : Maybe Axial
     }
 
 
@@ -39,27 +40,23 @@ type alias Model =
     , scrollY : Int
     , dogs : Dict.Dict String Animal
     , sheep : Dict.Dict String Animal
-    , activeAnimal : String
-    , destination : Maybe Axial
-    , path : List Axial
+    , activeDog : String
     , items : Dict.Dict String Item
     , gate : Axial
     , fence : List Axial
+    , turnEnd : Bool
     }
 
 
 type Msg
-    = NoOp
-    | Move Keyboard.KeyCode
-    | Mover (Axial -> Axial)
-    | Click (Tile HexContent)
+    = Click (Tile HexContent)
     | Delete (Tile HexContent)
     | RandomLand Axial Int
     | SetDestination (Tile HexContent)
-    | MoveAnimal String Axial Time.Time
     | ColorTile (Tile HexContent)
     | ClickDog Animal
     | ClickSheep Animal
+    | TurnEnd
 
 
 dog3 : Animal
@@ -129,6 +126,8 @@ baseAnimal =
     , experience = 0
     , items = []
     , moved = 0
+    , path = []
+    , destination = Maybe.Nothing
     }
 
 
@@ -195,12 +194,11 @@ init =
     , scrollY = getScrollY dog3.location
     , sheep = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
     , dogs = Dict.empty |> Dict.insert dog2.key dog2 |> Dict.insert dog3.key dog3 |> Dict.insert dog1.key dog1
-    , activeAnimal = dog3.key
-    , destination = Maybe.Nothing
-    , path = []
+    , activeDog = dog3.key
     , items = Dict.insert "rock" (Item "Rock" []) Dict.empty
     , fence = []
     , gate = ( 6, 6 )
+    , turnEnd = False
     }
         ! []
 
@@ -208,57 +206,6 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case (Debug.log "" msg) of
-        Move key ->
-            case key of
-                65 ->
-                    -- a
-                    update (Mover (\axial -> ( (Tuple.first axial) - 1, Tuple.second axial ))) model
-
-                67 ->
-                    -- c
-                    update (Mover (\axial -> ( (Tuple.first axial), Tuple.second axial + 1 ))) model
-
-                68 ->
-                    -- d
-                    update (Mover (\axial -> ( (Tuple.first axial) + 1, Tuple.second axial ))) model
-
-                69 ->
-                    -- e
-                    update (Mover (\axial -> ( (Tuple.first axial) + 1, Tuple.second axial - 1 ))) model
-
-                81 ->
-                    -- q
-                    update (Mover (\axial -> ( (Tuple.first axial), Tuple.second axial - 1 ))) model
-
-                90 ->
-                    -- z
-                    update (Mover (\axial -> ( (Tuple.first axial) - 1, Tuple.second axial + 1 ))) model
-
-                _ ->
-                    model ! []
-
-        Mover neighborMaker ->
-            let
-                curr =
-                    Dict.get dog3.key model.dogs
-                        |> Maybe.withDefault baseAnimal
-
-                attempt =
-                    neighborMaker curr.location
-
-                location =
-                    if gridContains model.board attempt then
-                        attempt
-                    else
-                        curr.location
-            in
-                { model
-                    | dogs = Dict.insert curr.key { curr | location = location } model.dogs
-                    , scrollX = getScrollX location
-                    , scrollY = getScrollY location
-                }
-                    ! []
-
         Click hex ->
             model
                 |> update (SetDestination hex)
@@ -278,68 +225,23 @@ update msg model =
                 { model | board = board } ! []
 
         SetDestination hex ->
-            { model | destination = Just hex.coords } ! []
+            let
+                curr =
+                    Dict.get model.activeDog model.dogs
+                        |> Maybe.withDefault baseAnimal
 
-        MoveAnimal dog coords time ->
-            case model.destination of
-                Just somewhere ->
-                    let
-                        curr =
-                            Dict.get dog model.dogs
-                                |> Maybe.withDefault baseAnimal
+                path =
+                    case getPath model.board curr.location hex.coords of
+                        Just aPath ->
+                            aPath
 
-                        path =
-                            if List.isEmpty model.path then
-                                case getPath model.board curr.location coords of
-                                    Just aPath ->
-                                        aPath
-
-                                    _ ->
-                                        model.path
-                            else
-                                model.path
-
-                        maybeCoord =
-                            List.head path
-
-                        tail =
-                            List.tail path
-
-                        newTile =
-                            get model.board coords
-                                |> Maybe.withDefault { dog = Maybe.Nothing, landType = Land }
-
-                        prevTile =
-                            get model.board curr.location
-                                |> Maybe.withDefault { dog = Maybe.Nothing, landType = Land }
-                    in
-                        case maybeCoord of
-                            Just coord ->
-                                case tail of
-                                    Just rest ->
-                                        { model
-                                            | dogs = Dict.insert curr.key { curr | location = coord, moved = curr.moved + 1 } model.dogs
-                                            , path = rest
-                                            , scrollX = getScrollX coord
-                                            , scrollY = getScrollY coord
-                                            , board =
-                                                set { newTile | dog = Just curr.key } coord model.board
-                                                    |> set { prevTile | dog = Maybe.Nothing } curr.location
-                                        }
-                                            ! []
-
-                                    _ ->
-                                        model ! []
-
-                            _ ->
-                                { model
-                                    | destination = Maybe.Nothing
-                                    , path = []
-                                }
-                                    ! []
-
-                _ ->
-                    model ! []
+                        _ ->
+                            []
+            in
+                { model
+                    | dogs = Dict.insert curr.key { curr | path = path, destination = Just hex.coords } model.dogs
+                }
+                    ! []
 
         ColorTile hex ->
             { model | clicked = Just hex.coords }
@@ -350,23 +252,18 @@ update msg model =
                   )
 
         ClickDog dog ->
-            case List.length model.path of
-                0 ->
-                    { model
-                        | activeAnimal = dog.key
-                        , clicked = Just dog.location
-                        , scrollX = getScrollX dog.location
-                        , scrollY = getScrollY dog.location
-                    }
-                        ! []
-
-                _ ->
-                    model ! []
+            { model
+                | activeDog = dog.key
+                , clicked = Just dog.location
+                , scrollX = getScrollX dog.location
+                , scrollY = getScrollY dog.location
+            }
+                ! []
 
         ClickSheep sheep ->
             let
                 currAnimal =
-                    Dict.get model.activeAnimal model.dogs
+                    Dict.get model.activeDog model.dogs
                         |> Maybe.withDefault baseAnimal
 
                 newHealth =
@@ -377,14 +274,39 @@ update msg model =
                 }
                     ! []
 
+        TurnEnd ->
+            let
+                dogIdList =
+                    Dict.toList model.dogs
+
+                dogList =
+                    List.map (\( id, dog ) -> ( id, moveDog model dog )) dogIdList
+
+                dogMap =
+                    Dict.fromList dogList
+            in
+                { model | dogs = dogMap } ! []
+
+
+moveDog : Model -> Animal -> Animal
+moveDog model dog =
+    case dog.destination of
+        Just coords ->
+            case List.head dog.path of
+                Just nextCoord ->
+                    case List.tail dog.path of
+                        Just rest ->
+                            { dog
+                                | location = nextCoord
+                                , moved = dog.moved + 1
+                                , path = rest
+                            }
+
+                        _ ->
+                            dog
+
+                _ ->
+                    dog
+
         _ ->
-            model ! []
-
-
-getAnimals : Model -> List Animal
-getAnimals model =
-    let
-        dogs =
-            Dict.values model.dogs
-    in
-        dogs
+            dog

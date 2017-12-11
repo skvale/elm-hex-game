@@ -6,8 +6,6 @@ import Model exposing (..)
 import HexView exposing (viewHexagons)
 import Stats exposing (viewStats)
 import TurnDetails exposing (viewTurnDetails)
-import Keyboard
-import Time exposing (every, millisecond)
 
 
 view : Model -> Html Msg
@@ -31,12 +29,5 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    (case model.destination of
-        Just coords ->
-            [ every (200 * millisecond) (MoveAnimal model.activeAnimal coords) ]
-
-        _ ->
-            []
-    )
-        |> List.append [ Keyboard.ups Move ]
+    []
         |> Sub.batch

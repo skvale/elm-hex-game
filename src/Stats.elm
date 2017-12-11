@@ -4,20 +4,19 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model exposing (..)
-import Hexagons.HexContent exposing (..)
 
 
 viewStats : Model -> Html msg
 viewStats model =
     let
         maybeAnimal =
-            Dict.get model.activeAnimal model.dogs
+            Dict.get model.activeDog model.dogs
     in
         case maybeAnimal of
             Just dog ->
                 div [ class "stats" ]
                     [ header
-                    , activePlayer dog
+                    , activeDog dog
                     , health dog
                     , experience dog
                     , location dog
@@ -36,8 +35,8 @@ header =
         [ text "Game stats" ]
 
 
-activePlayer : Animal -> Html msg
-activePlayer dog =
+activeDog : Animal -> Html msg
+activeDog dog =
     let
         display =
             dog.key

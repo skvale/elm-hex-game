@@ -32,8 +32,7 @@ viewHexagons model =
             Dict.values model.sheep
 
         allHexes =
-            (List.map view hexagons) ++ (List.map (viewAnimal model) dogs) ++ (List.map (viewSheep model) sheep)
-
+            (List.map view hexagons) ++ (List.map (viewDog model) dogs) ++ (List.map (viewSheep model) sheep) ++ (renderPaths model)
     in
         div [ class "hexagons" ]
             [ svg
@@ -46,6 +45,25 @@ viewHexagons model =
                     allHexes
                 ]
             ]
+
+
+renderPaths : Model -> List (Svg msg)
+renderPaths model =
+    List.concat (List.map (renderPath model) (Dict.values model.dogs))
+
+
+renderPath : Model -> Animal -> List (Svg msg)
+renderPath model dog =
+    List.map (renderPathPoint model.size) dog.path
+
+
+renderPathPoint : Float -> Axial -> Svg msg
+renderPathPoint size axial =
+    let
+        center =
+            axialToPoint size axial
+    in
+        circle [ r "2", cx <| toString <| Tuple.first center + size, cy <| toString <| Tuple.second center + size ] []
 
 
 hexPoints : Axial -> Float -> String
@@ -125,8 +143,8 @@ renderSheep sheep =
         ]
 
 
-viewAnimal : Model -> Animal -> Svg Msg
-viewAnimal model dog =
+viewDog : Model -> Animal -> Svg Msg
+viewDog model dog =
     polygon
         [ points (hexPoints dog.location model.size)
         , onClick <| ClickDog dog

@@ -10,14 +10,17 @@ import Model exposing (..)
 viewTurnDetails : Model -> Html Msg
 viewTurnDetails model =
     div [ class "turn-details" ]
-        ([ text "Turn Details" ] ++ (List.map (dog model) (getAnimals model)))
+        [ text "Turn Details"
+        , div [] (List.map (dog model) (Dict.values model.dogs))
+        , button [ class "turn-details-end-turn", onClick TurnEnd ] [ text "End turn" ]
+        ]
 
 
 dog : Model -> Animal -> Html Msg
 dog model c =
     let
         className =
-            if c.key == model.activeAnimal then
+            if c.key == model.activeDog then
                 " turn-details-active"
             else
                 ""
