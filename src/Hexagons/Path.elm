@@ -30,15 +30,15 @@ getPath grid start end =
         |> Maybe.map Array.toList
 
 
-hasCharacter : Grid HexContent -> Axial -> Bool
-hasCharacter grid axial =
+hasAnimal : Grid HexContent -> Axial -> Bool
+hasAnimal grid axial =
     let
         maybeHexContent =
             Hexagons.Grid.get grid axial
     in
         case maybeHexContent of
             Just hexContent ->
-                case hexContent.character of
+                case hexContent.dog of
                     Just c ->
                         False
 
@@ -59,7 +59,7 @@ axialNeighbors grid a =
     , ( Tuple.first a - 1, Tuple.second a )
     ]
         |> List.filter (gridContains grid)
-        |> List.filter (hasCharacter grid)
+        |> List.filter (hasAnimal grid)
         |> Set.fromList
 
 

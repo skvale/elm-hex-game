@@ -33,7 +33,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     (case model.destination of
         Just coords ->
-            [ every (200 * millisecond) (MoveCharacter model.activeCharacter coords) ]
+            [ every (200 * millisecond) (MoveAnimal model.activeAnimal coords) ]
 
         _ ->
             []

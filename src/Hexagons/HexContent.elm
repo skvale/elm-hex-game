@@ -12,6 +12,6 @@ type LandType
 
 
 type alias HexContent =
-    { character : Maybe String
+    { dog : Maybe String
     , landType : LandType
     }

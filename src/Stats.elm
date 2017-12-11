@@ -10,18 +10,18 @@ import Hexagons.HexContent exposing (..)
 viewStats : Model -> Html msg
 viewStats model =
     let
-        maybeCharacter =
-            Dict.get model.activeCharacter model.characters
+        maybeAnimal =
+            Dict.get model.activeAnimal model.dogs
     in
-        case maybeCharacter of
-            Just character ->
+        case maybeAnimal of
+            Just dog ->
                 div [ class "stats" ]
                     [ header
-                    , activePlayer character
-                    , health character
-                    , experience character
-                    , location character
-                    , items model.items character
+                    , activePlayer dog
+                    , health dog
+                    , experience dog
+                    , location dog
+                    , items model.items dog
                     ]
 
             _ ->
@@ -36,47 +36,47 @@ header =
         [ text "Game stats" ]
 
 
-activePlayer : Character -> Html msg
-activePlayer character =
+activePlayer : Animal -> Html msg
+activePlayer dog =
     let
         display =
-            character.key
+            dog.key
     in
         div [ class "stats-li stats-active-player" ]
             [ text ("Active: " ++ display)
-            , img [ src character.imageHref, class "stats-active-player-img" ] []
+            , img [ src dog.imageHref, class "stats-active-player-img" ] []
             ]
 
 
-health : Character -> Html msg
-health character =
+health : Animal -> Html msg
+health dog =
     let
         display =
-            (toString character.health) ++ " / " ++ (toString character.totalHealth)
+            (toString dog.health) ++ " / " ++ (toString dog.totalHealth)
     in
         div [ class "stats-li stats-health" ] [ text ("Health: " ++ display) ]
 
 
-experience : Character -> Html msg
-experience character =
+experience : Animal -> Html msg
+experience dog =
     let
         display =
-            (toString character.experience) ++ " / " ++ ("100")
+            (toString dog.experience) ++ " / " ++ ("100")
     in
         div [ class "stats-li stats-experience" ] [ text ("Experience: " ++ display) ]
 
 
-location : Character -> Html msg
-location character =
+location : Animal -> Html msg
+location dog =
     let
         display =
-            toString character.location
+            toString dog.location
     in
         div [ class "stats-li stats-location" ] [ text ("Location: " ++ display) ]
 
 
-items : Dict.Dict String Item -> Character -> Html msg
-items items character =
+items : Dict.Dict String Item -> Animal -> Html msg
+items items dog =
     let
         display =
             List.map
@@ -85,6 +85,6 @@ items items character =
                         [ Dict.get item items |> Maybe.map .name |> toString |> text
                         ]
                 )
-                character.items
+                dog.items
     in
         div [ class "stats-li stats-items" ] ([ text "Items: " ] ++ display)

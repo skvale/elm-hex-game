@@ -26,11 +26,11 @@ svg {
   transition: all 1s ease-out;
 }
 
-.polygon-character {
+.polygon-dog {
   cursor: pointer;
 }
 
-.polygon-baddie {
+.polygon-sheep {
   stroke: red;
   stroke-width: 1px;
   cursor: pointer;
@@ -75,11 +75,11 @@ polygon.active-tile {
   stroke-width: 2px;
 }
 
-.character {
+.dog {
   transform: rotateX(50deg) rotateY(45deg) rotateZ(-24deg) scale(0.8);
 }
 
-.baddie {
+.sheep {
   transform: rotateX(48deg) rotateY(50deg) rotateZ(-37deg) scale(0.8) translate(-2px, 12px);
 }
 
@@ -89,7 +89,7 @@ polygon.active-tile {
   margin: 8px;
 }
 
-.turn-details-character {
+.turn-details-dog {
   align-items: center;
   cursor: pointer;
   background-color: ghostwhite;
@@ -101,7 +101,7 @@ polygon.active-tile {
   width: 100px;
 }
 
-.turn-details-character img {
+.turn-details-dog img {
   background-color: ghostwhite;
   border-radius: 8px;
   height: 40px;

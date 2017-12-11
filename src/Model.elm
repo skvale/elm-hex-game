@@ -17,7 +17,7 @@ type alias Item =
     }
 
 
-type alias Character =
+type alias Animal =
     { location : Axial
     , imageHref : String
     , key : String
@@ -37,12 +37,14 @@ type alias Model =
     , clicked : Maybe Axial
     , scrollX : Int
     , scrollY : Int
-    , characters : Dict.Dict String Character
-    , activeCharacter : String
+    , dogs : Dict.Dict String Animal
+    , sheep : Dict.Dict String Animal
+    , activeAnimal : String
     , destination : Maybe Axial
     , path : List Axial
     , items : Dict.Dict String Item
-    , baddies : Dict.Dict String Character
+    , gate : Axial
+    , fence : List Axial
     }
 
 
@@ -54,15 +56,15 @@ type Msg
     | Delete (Tile HexContent)
     | RandomLand Axial Int
     | SetDestination (Tile HexContent)
-    | MoveCharacter String Axial Time.Time
+    | MoveAnimal String Axial Time.Time
     | ColorTile (Tile HexContent)
-    | ClickCharacter Character
-    | ClickBaddie Character
+    | ClickDog Animal
+    | ClickSheep Animal
 
 
-human : Character
-human =
-    { stubCharacter
+dog3 : Animal
+dog3 =
+    { baseAnimal
         | location = ( 0, 2 )
         , imageHref = "images/dog3.png"
         , key = "Roy"
@@ -71,9 +73,9 @@ human =
     }
 
 
-wizard : Character
-wizard =
-    { stubCharacter
+dog2 : Animal
+dog2 =
+    { baseAnimal
         | location = ( 1, 2 )
         , imageHref = "images/dog2.png"
         , key = "Taff"
@@ -82,9 +84,9 @@ wizard =
     }
 
 
-thief : Character
-thief =
-    { stubCharacter
+dog1 : Animal
+dog1 =
+    { baseAnimal
         | location = ( 1, 1 )
         , imageHref = "images/dog1.png"
         , key = "Wisp"
@@ -93,30 +95,32 @@ thief =
     }
 
 
-sheep1 : Character
+sheep1 : Animal
 sheep1 =
-    { stubCharacter
-    | location = ( 3, 4 )
-    , imageHref = "images/sheep1.png"
-    , key = "sheep1"
-    , health = 60
-    , totalHealth = 60
-    , items = [ ]
+    { baseAnimal
+        | location = ( 3, 4 )
+        , imageHref = "images/sheep1.png"
+        , key = "sheep1"
+        , health = 60
+        , totalHealth = 60
+        , items = []
     }
 
-sheep2 : Character
+
+sheep2 : Animal
 sheep2 =
-    { stubCharacter
-    | location = ( 4, 4 )
-    , imageHref = "images/sheep2.png"
-    , key = "sheep2"
-    , health = 60
-    , totalHealth = 60
-    , items = [ ]
+    { baseAnimal
+        | location = ( 5, 4 )
+        , imageHref = "images/sheep2.png"
+        , key = "sheep2"
+        , health = 60
+        , totalHealth = 60
+        , items = []
     }
 
-stubCharacter : Character
-stubCharacter =
+
+baseAnimal : Animal
+baseAnimal =
     { location = ( 0, 0 )
     , imageHref = ""
     , key = ""
@@ -162,9 +166,9 @@ fillInitialBoardHelper : Int -> Int -> Int -> Grid HexContent -> Grid HexContent
 fillInitialBoardHelper top i j tmp =
     if j > 0 then
         if i > 0 then
-            fillInitialBoardHelper top (i - 1) j (set { character = Maybe.Nothing, landType = Land } ( i, j ) tmp)
+            fillInitialBoardHelper top (i - 1) j (set { dog = Maybe.Nothing, landType = Land } ( i, j ) tmp)
         else
-            fillInitialBoardHelper top top (j - 1) (set { character = Maybe.Nothing, landType = Land } ( i, j ) tmp)
+            fillInitialBoardHelper top top (j - 1) (set { dog = Maybe.Nothing, landType = Land } ( i, j ) tmp)
     else
         tmp
 
@@ -178,23 +182,25 @@ init : ( Model, Cmd Msg )
 init =
     { board =
         fillInitialBoard 20 20
-            |> set { character = Just human.key, landType = Land } human.location
-            |> set { character = Just wizard.key, landType = Land } wizard.location
-            |> set { character = Just thief.key, landType = Land } thief.location
-            |> set { character = Just sheep1.key, landType = Land } sheep1.location
-            |> set { character = Just sheep2.key, landType = Land } sheep2.location
+            |> set { dog = Just dog3.key, landType = Land } dog3.location
+            |> set { dog = Just dog2.key, landType = Land } dog2.location
+            |> set { dog = Just dog1.key, landType = Land } dog1.location
+            |> set { dog = Just sheep1.key, landType = Land } sheep1.location
+            |> set { dog = Just sheep2.key, landType = Land } sheep2.location
     , size = hexSize
     , rotateX = 0
     , rotateZ = 0
-    , clicked = Just human.location
-    , scrollX = getScrollX human.location
-    , scrollY = getScrollY human.location
-    , baddies = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
-    , characters = Dict.empty |> Dict.insert wizard.key wizard |> Dict.insert human.key human |> Dict.insert thief.key thief
-    , activeCharacter = human.key
+    , clicked = Just dog3.location
+    , scrollX = getScrollX dog3.location
+    , scrollY = getScrollY dog3.location
+    , sheep = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
+    , dogs = Dict.empty |> Dict.insert dog2.key dog2 |> Dict.insert dog3.key dog3 |> Dict.insert dog1.key dog1
+    , activeAnimal = dog3.key
     , destination = Maybe.Nothing
     , path = []
     , items = Dict.insert "rock" (Item "Rock" []) Dict.empty
+    , fence = []
+    , gate = ( 6, 6 )
     }
         ! []
 
@@ -234,8 +240,8 @@ update msg model =
         Mover neighborMaker ->
             let
                 curr =
-                    Dict.get human.key model.characters
-                        |> Maybe.withDefault stubCharacter
+                    Dict.get dog3.key model.dogs
+                        |> Maybe.withDefault baseAnimal
 
                 attempt =
                     neighborMaker curr.location
@@ -247,7 +253,7 @@ update msg model =
                         curr.location
             in
                 { model
-                    | characters = Dict.insert curr.key { curr | location = location } model.characters
+                    | dogs = Dict.insert curr.key { curr | location = location } model.dogs
                     , scrollX = getScrollX location
                     , scrollY = getScrollY location
                 }
@@ -264,7 +270,7 @@ update msg model =
         RandomLand coords i ->
             let
                 tile =
-                    get model.board coords |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
+                    get model.board coords |> Maybe.withDefault { dog = Maybe.Nothing, landType = Land }
 
                 board =
                     set { tile | landType = getALandType i } coords model.board
@@ -274,13 +280,13 @@ update msg model =
         SetDestination hex ->
             { model | destination = Just hex.coords } ! []
 
-        MoveCharacter character coords time ->
+        MoveAnimal dog coords time ->
             case model.destination of
                 Just somewhere ->
                     let
                         curr =
-                            Dict.get character model.characters
-                                |> Maybe.withDefault stubCharacter
+                            Dict.get dog model.dogs
+                                |> Maybe.withDefault baseAnimal
 
                         path =
                             if List.isEmpty model.path then
@@ -301,24 +307,24 @@ update msg model =
 
                         newTile =
                             get model.board coords
-                                |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
+                                |> Maybe.withDefault { dog = Maybe.Nothing, landType = Land }
 
                         prevTile =
                             get model.board curr.location
-                                |> Maybe.withDefault { character = Maybe.Nothing, landType = Land }
+                                |> Maybe.withDefault { dog = Maybe.Nothing, landType = Land }
                     in
                         case maybeCoord of
                             Just coord ->
                                 case tail of
                                     Just rest ->
                                         { model
-                                            | characters = Dict.insert curr.key { curr | location = coord, moved = curr.moved + 1 } model.characters
+                                            | dogs = Dict.insert curr.key { curr | location = coord, moved = curr.moved + 1 } model.dogs
                                             , path = rest
                                             , scrollX = getScrollX coord
                                             , scrollY = getScrollY coord
                                             , board =
-                                                set { newTile | character = Just curr.key } coord model.board
-                                                    |> set { prevTile | character = Maybe.Nothing } curr.location
+                                                set { newTile | dog = Just curr.key } coord model.board
+                                                    |> set { prevTile | dog = Maybe.Nothing } curr.location
                                         }
                                             ! []
 
@@ -343,31 +349,31 @@ update msg model =
                     []
                   )
 
-        ClickCharacter character ->
+        ClickDog dog ->
             case List.length model.path of
                 0 ->
                     { model
-                        | activeCharacter = character.key
-                        , clicked = Just character.location
-                        , scrollX = getScrollX character.location
-                        , scrollY = getScrollY character.location
+                        | activeAnimal = dog.key
+                        , clicked = Just dog.location
+                        , scrollX = getScrollX dog.location
+                        , scrollY = getScrollY dog.location
                     }
                         ! []
 
                 _ ->
                     model ! []
 
-        ClickBaddie baddie ->
+        ClickSheep sheep ->
             let
-                currCharacter =
-                    Dict.get model.activeCharacter model.characters
-                        |> Maybe.withDefault stubCharacter
+                currAnimal =
+                    Dict.get model.activeAnimal model.dogs
+                        |> Maybe.withDefault baseAnimal
 
                 newHealth =
-                    currCharacter.health - 2
+                    currAnimal.health - 2
             in
                 { model
-                    | characters = Dict.insert currCharacter.key { currCharacter | health = newHealth } model.characters
+                    | dogs = Dict.insert currAnimal.key { currAnimal | health = newHealth } model.dogs
                 }
                     ! []
 
@@ -375,10 +381,10 @@ update msg model =
             model ! []
 
 
-getCharacters : Model -> List Character
-getCharacters model =
+getAnimals : Model -> List Animal
+getAnimals model =
     let
-        characters =
-            Dict.values model.characters
+        dogs =
+            Dict.values model.dogs
     in
-        characters
+        dogs

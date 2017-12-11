@@ -25,21 +25,25 @@ viewHexagons model =
         hexagons =
             Hexagons.Grid.list model.board
 
-        characters =
-            Dict.values model.characters
+        dogs =
+            Dict.values model.dogs
 
-        baddies =
-            Dict.values model.baddies
+        sheep =
+            Dict.values model.sheep
+
+        allHexes =
+            (List.map view hexagons) ++ (List.map (viewAnimal model) dogs) ++ (List.map (viewSheep model) sheep)
+
     in
         div [ class "hexagons" ]
             [ svg
                 [ width <| (floor containerWidth |> toString) ++ "px"
                 , height <| (floor containerHeight |> toString) ++ "px"
                 ]
-                [ defs [] ((List.map character characters) ++ (List.map baddie baddies))
+                [ defs [] ((List.map dog dogs) ++ (List.map renderSheep sheep))
                 , g
                     [ transform (matrixTransform model), class "svg-polygons" ]
-                    ((List.map view hexagons) ++ (List.map (viewCharacter model) characters) ++ (List.map (viewBaddie model) baddies))
+                    allHexes
                 ]
             ]
 
@@ -107,34 +111,37 @@ landTypeToClass landType =
             "land"
 
 
-character : Character -> Svg msg
-character character =
-    pattern [ id character.key, width "100%", height "100%" ]
-        [ image [ xlinkHref character.imageHref, class "character", width "50", height "50", preserveAspectRatio "none" ] []
+dog : Animal -> Svg msg
+dog dog =
+    pattern [ id dog.key, width "100%", height "100%" ]
+        [ image [ xlinkHref dog.imageHref, class "dog", width "50", height "50", preserveAspectRatio "none" ] []
         ]
 
-baddie : Character -> Svg msg
-baddie baddie =
-    pattern [ id baddie.key, width "100%", height "100%" ]
-        [ image [ xlinkHref baddie.imageHref, class "baddie", width "50", height "50", preserveAspectRatio "none" ] []
+
+renderSheep : Animal -> Svg msg
+renderSheep sheep =
+    pattern [ id sheep.key, width "100%", height "100%" ]
+        [ image [ xlinkHref sheep.imageHref, class "sheep", width "50", height "50", preserveAspectRatio "none" ] []
         ]
 
-viewCharacter : Model -> Character -> Svg Msg
-viewCharacter model character =
+
+viewAnimal : Model -> Animal -> Svg Msg
+viewAnimal model dog =
     polygon
-        [ points (hexPoints character.location model.size)
-        , onClick <| ClickCharacter character
-        , class "polygon-character"
-        , fill ("url(#" ++ character.key ++ ")")
+        [ points (hexPoints dog.location model.size)
+        , onClick <| ClickDog dog
+        , class "polygon-dog"
+        , fill ("url(#" ++ dog.key ++ ")")
         ]
         []
 
-viewBaddie : Model -> Character -> Svg Msg
-viewBaddie model baddie =
+
+viewSheep : Model -> Animal -> Svg Msg
+viewSheep model sheep =
     polygon
-        [ points (hexPoints baddie.location model.size)
-        , class "polygon-baddie"
-        , ClickBaddie baddie |> onClick
-        , fill ("url(#" ++ baddie.key ++ ")")
+        [ points (hexPoints sheep.location model.size)
+        , class "polygon-sheep"
+        , ClickSheep sheep |> onClick
+        , fill ("url(#" ++ sheep.key ++ ")")
         ]
         []
