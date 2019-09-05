@@ -22,16 +22,17 @@ dog model c =
         className =
             if c.key == model.activeDog then
                 " turn-details-active"
+
             else
                 ""
     in
-        div
-            [ class <| "turn-details-dog" ++ className
-            , onClick <| ClickDog c
+    div
+        [ class <| "turn-details-dog" ++ className
+        , onClick <| ClickDog c
+        ]
+        [ img [ src c.imageHref ] []
+        , div []
+            [ div [] [ text c.key ]
+            , div [] [ text <| "Moved: " ++ String.fromInt c.moved ]
             ]
-            [ img [ src c.imageHref ] []
-            , div []
-                [ div [] [ text c.key ]
-                , div [] [ text <| "Moved: " ++ toString c.moved ]
-                ]
-            ]
+        ]

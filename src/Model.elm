@@ -1,13 +1,13 @@
 module Model exposing (..)
 
-import Dict
 import Debug
-import Hexagons.Main exposing (..)
+import Json.Decode
+import Dict
 import Hexagons.Grid exposing (..)
+import Hexagons.HexContent exposing (..)
+import Hexagons.Main exposing (..)
 import Hexagons.Path exposing (..)
 import Random
-import Keyboard
-import Hexagons.HexContent exposing (..)
 
 
 type alias Item =
@@ -166,8 +166,10 @@ fillInitialBoardHelper top i j tmp =
     if j > 0 then
         if i > 0 then
             fillInitialBoardHelper top (i - 1) j (set { dog = Maybe.Nothing, landType = Land } ( i, j ) tmp)
+
         else
             fillInitialBoardHelper top top (j - 1) (set { dog = Maybe.Nothing, landType = Land } ( i, j ) tmp)
+
     else
         tmp
 
@@ -177,41 +179,44 @@ fillInitialBoard i j =
     fillInitialBoardHelper j i j Dict.empty
 
 
-init : ( Model, Cmd Msg )
-init =
-    { board =
-        fillInitialBoard 20 20
-            |> set { dog = Just dog3.key, landType = Land } dog3.location
-            |> set { dog = Just dog2.key, landType = Land } dog2.location
-            |> set { dog = Just dog1.key, landType = Land } dog1.location
-            |> set { dog = Just sheep1.key, landType = Land } sheep1.location
-            |> set { dog = Just sheep2.key, landType = Land } sheep2.location
-    , size = hexSize
-    , rotateX = 0
-    , rotateZ = 0
-    , clicked = Just dog3.location
-    , scrollX = getScrollX dog3.location
-    , scrollY = getScrollY dog3.location
-    , sheep = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
-    , dogs = Dict.empty |> Dict.insert dog2.key dog2 |> Dict.insert dog3.key dog3 |> Dict.insert dog1.key dog1
-    , activeDog = dog3.key
-    , items = Dict.insert "rock" (Item "Rock" []) Dict.empty
-    , fence = []
-    , gate = ( 6, 6 )
-    , turnEnd = False
-    }
-        ! []
+init : Json.Decode.Value -> ( Model, Cmd Msg )
+init flags = 
+    ( { board =
+            fillInitialBoard 20 20
+                |> set { dog = Just dog3.key, landType = Land } dog3.location
+                |> set { dog = Just dog2.key, landType = Land } dog2.location
+                |> set { dog = Just dog1.key, landType = Land } dog1.location
+                |> set { dog = Just sheep1.key, landType = Land } sheep1.location
+                |> set { dog = Just sheep2.key, landType = Land } sheep2.location
+      , size = hexSize
+      , rotateX = 0
+      , rotateZ = 0
+      , clicked = Just dog3.location
+      , scrollX = getScrollX dog3.location
+      , scrollY = getScrollY dog3.location
+      , sheep = Dict.empty |> Dict.insert sheep1.key sheep1 |> Dict.insert sheep2.key sheep2
+      , dogs = Dict.empty |> Dict.insert dog2.key dog2 |> Dict.insert dog3.key dog3 |> Dict.insert dog1.key dog1
+      , activeDog = dog3.key
+      , items = Dict.insert "rock" (Item "Rock" []) Dict.empty
+      , fence = []
+      , gate = ( 6, 6 )
+      , turnEnd = False
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case (Debug.log "" msg) of
+    case Debug.log "" msg of
         Click hex ->
             model
                 |> update (SetDestination hex)
 
         Delete hex ->
-            { model | board = model.board } ! []
+            ( { model | board = model.board }
+            , Cmd.none
+            )
 
         -- { model | board = delete hex.coords model.board } ! []
         RandomLand coords i ->
@@ -222,7 +227,9 @@ update msg model =
                 board =
                     set { tile | landType = getALandType i } coords model.board
             in
-                { model | board = board } ! []
+            ( { model | board = board }
+            , Cmd.none
+            )
 
         SetDestination hex ->
             let
@@ -238,27 +245,32 @@ update msg model =
                         _ ->
                             []
             in
-                { model
-                    | dogs = Dict.insert curr.key { curr | path = path, destination = Just hex.coords } model.dogs
-                }
-                    ! []
+            ( { model
+                | dogs = Dict.insert curr.key { curr | path = path, destination = Just hex.coords } model.dogs
+              }
+            , Cmd.none
+            )
 
         ColorTile hex ->
-            { model | clicked = Just hex.coords }
-                ! (if hex.content.landType == Land then
+            ( { model | clicked = Just hex.coords }
+            , Cmd.batch
+                (if hex.content.landType == Land then
                     [ Random.generate (RandomLand hex.coords) (Random.int 0 2) ]
-                   else
+
+                 else
                     []
-                  )
+                )
+            )
 
         ClickDog dog ->
-            { model
+            ( { model
                 | activeDog = dog.key
                 , clicked = Just dog.location
                 , scrollX = getScrollX dog.location
                 , scrollY = getScrollY dog.location
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         ClickSheep sheep ->
             let
@@ -269,10 +281,11 @@ update msg model =
                 newHealth =
                     currAnimal.health - 2
             in
-                { model
-                    | dogs = Dict.insert currAnimal.key { currAnimal | health = newHealth } model.dogs
-                }
-                    ! []
+            ( { model
+                | dogs = Dict.insert currAnimal.key { currAnimal | health = newHealth } model.dogs
+              }
+            , Cmd.none
+            )
 
         TurnEnd ->
             let
@@ -285,7 +298,9 @@ update msg model =
                 dogMap =
                     Dict.fromList dogList
             in
-                { model | dogs = dogMap } ! []
+            ( { model | dogs = dogMap }
+            , Cmd.none
+            )
 
 
 moveDog : Model -> Animal -> Animal

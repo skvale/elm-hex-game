@@ -7,6 +7,8 @@
     "test": "tests"
   },
   "dependencies": {
+    "elm-format": "^0.8.2",
+    "elm-upgrade": "^0.19.6",
     "pusher": "^1.5.1",
     "webpack": "^3.8.1"
   },

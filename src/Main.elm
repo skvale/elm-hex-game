@@ -1,9 +1,11 @@
 module Main exposing (..)
 
-import Html exposing (program, Html)
+import HexView exposing (viewHexagons)
+import Json.Decode
+import Html exposing (Html)
+import Browser exposing (element)
 import Html.Attributes exposing (..)
 import Model exposing (..)
-import HexView exposing (viewHexagons)
 import Stats exposing (viewStats)
 import TurnDetails exposing (viewTurnDetails)
 
@@ -17,9 +19,9 @@ view model =
         ]
 
 
-main : Program Never Model Msg
+main : Program Json.Decode.Value Model Msg
 main =
-    program
+    element
         { view = view
         , init = init
         , update = update

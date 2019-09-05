@@ -2,11 +2,12 @@ module Hexagons.Path exposing (getPath)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Set exposing (Set)
-import Tuple exposing (first, second)
-import Hexagons.Main exposing (..)
 import Hexagons.Grid exposing (..)
 import Hexagons.HexContent exposing (..)
+import Hexagons.Main exposing (..)
+import Set exposing (Set)
+import Tuple exposing (first, second)
+
 
 
 {--Taken from https://github.com/krisajenkins/elm-astar
@@ -36,17 +37,17 @@ hasAnimal grid axial =
         maybeHexContent =
             Hexagons.Grid.get grid axial
     in
-        case maybeHexContent of
-            Just hexContent ->
-                case hexContent.dog of
-                    Just c ->
-                        False
+    case maybeHexContent of
+        Just hexContent ->
+            case hexContent.dog of
+                Just c ->
+                    False
 
-                    _ ->
-                        True
+                _ ->
+                    True
 
-            _ ->
-                True
+        _ ->
+            True
 
 
 axialNeighbors : Grid HexContent -> Axial -> Set Axial
@@ -72,7 +73,7 @@ pythagoreanCost ( x1, y1 ) ( x2, y2 ) =
         dy =
             toFloat <| abs (y1 - y2)
     in
-        (sqrt 2 * min dx dy) + abs (dy - dx) |> abs
+    (sqrt 2 * min dx dy) + abs (dy - dx) |> abs
 
 
 type alias Model comparable =
@@ -141,15 +142,16 @@ updateCost current neighbour model =
                 , cameFrom = newCameFrom
             }
     in
-        case Dict.get neighbour model.costs of
-            Nothing ->
+    case Dict.get neighbour model.costs of
+        Nothing ->
+            newModel
+
+        Just previousDistance ->
+            if distanceTo < previousDistance then
                 newModel
 
-            Just previousDistance ->
-                if distanceTo < previousDistance then
-                    newModel
-                else
-                    model
+            else
+                model
 
 
 astar :
@@ -166,6 +168,7 @@ astar costFn moveFn goal model =
         Just current ->
             if current == goal then
                 Just (reconstructPath model.cameFrom goal)
+
             else
                 let
                     modelPopped =
@@ -190,4 +193,4 @@ astar costFn moveFn goal model =
                     modelWithCosts =
                         Set.foldl (updateCost current) modelWithNeighbours newNeighbours
                 in
-                    astar costFn moveFn goal modelWithCosts
+                astar costFn moveFn goal modelWithCosts

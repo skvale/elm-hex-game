@@ -1,4 +1,9 @@
-module Hexagons.Grid exposing (Grid, Row, Tile, get, set, delete, list, getPoint, gridContains)
+module Hexagons.Grid exposing
+    ( Grid, Row, Tile
+    , get, list, getPoint
+    , set, delete
+    , gridContains
+    )
 
 {-| A naive grid storage for hexagons: `Dict Int (Dict Int a)`
 
@@ -47,7 +52,7 @@ type alias Tile a =
 -}
 get : Grid a -> Axial -> Maybe a
 get grid ( i, j ) =
-    (Dict.get i grid) |> Maybe.andThen (Dict.get j)
+    Dict.get i grid |> Maybe.andThen (Dict.get j)
 
 
 {-| Add or update content to grid on those axial coordinates
@@ -63,7 +68,7 @@ set tile ( i, j ) grid =
                 Nothing ->
                     Dict.singleton j tile
     in
-        Dict.insert i (updateRow (Dict.get i grid)) grid
+    Dict.insert i (updateRow (Dict.get i grid)) grid
 
 
 {-| Remove content from those axial coordinates within grid
@@ -79,7 +84,7 @@ delete ( i, j ) grid =
                 Nothing ->
                     Dict.empty
     in
-        Dict.insert i (deleteInRow (Dict.get i grid)) grid
+    Dict.insert i (deleteInRow (Dict.get i grid)) grid
 
 
 {-| Produce a list of all tiles within grid
@@ -96,7 +101,7 @@ list grid =
         mapTile i ( j, kind ) =
             Tile kind ( i, j )
     in
-        List.concatMap mapRow rows
+    List.concatMap mapRow rows
 
 
 {-| Given an hexagonal grid definition (radius and grid),

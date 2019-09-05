@@ -1,19 +1,19 @@
 module HexView exposing (viewHexagons)
 
 import Dict
+import Hexagons.Grid exposing (..)
+import Hexagons.HexContent exposing (..)
+import Hexagons.Main exposing (..)
 import Html exposing (div)
+import Model exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (..)
-import Hexagons.Main exposing (..)
-import Hexagons.Grid exposing (..)
-import Hexagons.HexContent exposing (..)
-import Model exposing (..)
 
 
 matrixTransform : Model -> String
 matrixTransform model =
-    "matrix(1, 0, 0, 1," ++ (toString model.scrollX) ++ "," ++ (toString model.scrollY) ++ ")"
+    "matrix(1, 0, 0, 1," ++ String.fromInt model.scrollX ++ "," ++ String.fromInt model.scrollY ++ ")"
 
 
 viewHexagons : Model -> Svg Msg
@@ -32,19 +32,19 @@ viewHexagons model =
             Dict.values model.sheep
 
         allHexes =
-            (List.map view hexagons) ++ (List.map (viewDog model) dogs) ++ (List.map (viewSheep model) sheep) ++ (renderPaths model)
+            List.map view hexagons ++ List.map (viewDog model) dogs ++ List.map (viewSheep model) sheep ++ renderPaths model
     in
-        div [ class "hexagons" ]
-            [ svg
-                [ width <| (floor containerWidth |> toString) ++ "px"
-                , height <| (floor containerHeight |> toString) ++ "px"
-                ]
-                [ defs [] ((List.map dog dogs) ++ (List.map renderSheep sheep))
-                , g
-                    [ transform (matrixTransform model), class "svg-polygons" ]
-                    allHexes
-                ]
+    div [ class "hexagons" ]
+        [ svg
+            [ width <| (floor containerWidth |> String.fromInt) ++ "px"
+            , height <| (floor containerHeight |> String.fromInt) ++ "px"
             ]
+            [ defs [] (List.map dog dogs ++ List.map renderSheep sheep)
+            , g
+                [ transform (matrixTransform model), class "svg-polygons" ]
+                allHexes
+            ]
+        ]
 
 
 renderPaths : Model -> List (Svg msg)
@@ -53,8 +53,8 @@ renderPaths model =
 
 
 renderPath : Model -> Animal -> List (Svg msg)
-renderPath model dog =
-    List.map (renderPathPoint model.size) dog.path
+renderPath model d =
+    List.map (renderPathPoint model.size) d.path
 
 
 renderPathPoint : Float -> Axial -> Svg msg
@@ -63,7 +63,7 @@ renderPathPoint size axial =
         center =
             axialToPoint size axial
     in
-        circle [ r "2", cx <| toString <| Tuple.first center + size, cy <| toString <| Tuple.second center + size ] []
+    circle [ r "2", cx <| String.fromFloat <| Tuple.first center + size, cy <| String.fromFloat <| Tuple.second center + size ] []
 
 
 hexPoints : Axial -> Float -> String
@@ -72,7 +72,7 @@ hexPoints axial size =
         getCornerPoint =
             hexCorner axial size
     in
-        String.join " " (List.map getCornerPoint (List.range 1 6))
+    String.join " " (List.map getCornerPoint (List.range 1 6))
 
 
 hexCorner : Axial -> Float -> Int -> String
@@ -88,11 +88,11 @@ hexCorner axial size idx =
             axialToPoint size axial
 
         coords =
-            [ Tuple.first center + size + size * cos (radians)
-            , Tuple.second center + size + size * sin (radians)
+            [ Tuple.first center + size + size * cos radians
+            , Tuple.second center + size + size * sin radians
             ]
     in
-        String.join "," (List.map toString coords)
+    String.join "," (List.map String.fromFloat coords)
 
 
 viewHex : Float -> Maybe Axial -> Hexagons.Grid.Tile HexContent -> Svg Msg
@@ -102,10 +102,12 @@ viewHex size clicked tile =
         , class
             (landTypeToClass tile.content.landType
                 ++ " polygon-land "
-                ++ if axialIsEqual clicked (Just tile.coords) then
-                    "selected-tile "
-                   else
-                    ""
+                ++ (if axialIsEqual clicked (Just tile.coords) then
+                        "selected-tile "
+
+                    else
+                        ""
+                   )
             )
         , onClick <| Click tile
         , Svg.Events.onMouseOver <| Delete tile
@@ -130,9 +132,9 @@ landTypeToClass landType =
 
 
 dog : Animal -> Svg msg
-dog dog =
-    pattern [ id dog.key, width "100%", height "100%" ]
-        [ image [ xlinkHref dog.imageHref, class "dog", width "50", height "50", preserveAspectRatio "none" ] []
+dog d =
+    pattern [ id d.key, width "100%", height "100%" ]
+        [ image [ xlinkHref d.imageHref, class "dog", width "50", height "50", preserveAspectRatio "none" ] []
         ]
 
 
@@ -144,12 +146,12 @@ renderSheep sheep =
 
 
 viewDog : Model -> Animal -> Svg Msg
-viewDog model dog =
+viewDog model d =
     polygon
-        [ points (hexPoints dog.location model.size)
-        , onClick <| ClickDog dog
+        [ points (hexPoints d.location model.size)
+        , onClick <| ClickDog d
         , class "polygon-dog"
-        , fill ("url(#" ++ dog.key ++ ")")
+        , fill ("url(#" ++ d.key ++ ")")
         ]
         []
 

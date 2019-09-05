@@ -1,4 +1,10 @@
-module Hexagons.Main exposing (Axial, Point, dims, axialToPoint, pointToAxial, axialLine, axialDistance, axialRange, axialIsEqual)
+module Hexagons.Main exposing
+    ( Axial, Point
+    , dims, axialToPoint, pointToAxial
+    , axialDistance
+    , axialLine, axialRange
+    , axialIsEqual
+    )
 
 {-| Suite of functions for hexagonal grid computing, focused on horizontal grids ("pointy topped" hexagons) with axial coordinate system.
 
@@ -63,9 +69,9 @@ dims hexRadius =
             hexRadius * 2
 
         hexWidth =
-            (sqrt 3) / 2 * hexHeight
+            sqrt 3 / 2 * hexHeight
     in
-        ( hexWidth, hexHeight )
+    ( hexWidth, hexHeight )
 
 
 {-| Given hex radius and axial coords, return pixel coords of its center
@@ -74,12 +80,12 @@ axialToPoint : Float -> Axial -> Point
 axialToPoint axialRadius ( i, j ) =
     let
         x =
-            axialRadius * (sqrt 3) * (toFloat i + toFloat j / 2)
+            axialRadius * sqrt 3 * (toFloat i + toFloat j / 2)
 
         y =
             axialRadius * 3 / 2 * toFloat j
     in
-        ( x, y )
+    ( x, y )
 
 
 {-| Given hex radius and pixel coords, returns corresponding axial coords
@@ -88,12 +94,12 @@ pointToAxial : Float -> Point -> Axial
 pointToAxial axialRadius ( x, y ) =
     let
         i =
-            (x * (sqrt 3) / 3 - y / 3) / axialRadius
+            (x * sqrt 3 / 3 - y / 3) / axialRadius
 
         j =
             y * (2 / 3) / axialRadius
     in
-        axialRound ( i, j )
+    axialRound ( i, j )
 
 
 {-| List all hexagons composing a line between two hexagons.
@@ -125,9 +131,9 @@ axialRange center n =
                 mapY dy =
                     axialAdd center ( dx, dy )
             in
-                List.map mapY (List.range fromY toY)
+            List.map mapY (List.range fromY toY)
     in
-        List.concatMap mapX (List.range -n n)
+    List.concatMap mapX (List.range -n n)
 
 
 {-| Distance between two axial coordinates
@@ -163,12 +169,14 @@ cubeRound ( x, y, z ) =
         zDiff =
             abs (toFloat rz - z)
     in
-        if xDiff > yDiff && xDiff > zDiff then
-            ( -ry - rz, ry, rz )
-        else if yDiff > zDiff then
-            ( rx, -rx - rz, rz )
-        else
-            ( rx, ry, -rx - ry )
+    if xDiff > yDiff && xDiff > zDiff then
+        ( -ry - rz, ry, rz )
+
+    else if yDiff > zDiff then
+        ( rx, -rx - rz, rz )
+
+    else
+        ( rx, ry, -rx - ry )
 
 
 cubeDistance : IntCube -> IntCube -> Int
@@ -194,7 +202,7 @@ cubeLinearInterpol a b t =
         k =
             az + (bz - az) * t
     in
-        ( i, j, k )
+    ( i, j, k )
 
 
 floatCube : IntCube -> FloatCube
@@ -209,9 +217,9 @@ cubeLine a b =
             cubeDistance a b
 
         offsetMapper i =
-            cubeRound (cubeLinearInterpol a b (1 / (toFloat n) * (toFloat i)))
+            cubeRound (cubeLinearInterpol a b (1 / toFloat n * toFloat i))
     in
-        List.map offsetMapper (List.range 0 n)
+    List.map offsetMapper (List.range 0 n)
 
 
 axialAdd : Axial -> Axial -> Axial
