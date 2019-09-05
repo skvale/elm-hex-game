@@ -126,3 +126,7 @@ polygon.active-tile {
   padding: 16px;
   margin: 16px;
 }
+
+.height-1 {
+  transform: translate(0, -10px);
+}

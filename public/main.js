@@ -5212,10 +5212,10 @@ var author$project$HexView$viewHex = F3(
 					elm$svg$Svg$Attributes$points(
 					A2(author$project$HexView$hexPoints, tile.coords, size)),
 					elm$svg$Svg$Attributes$class(
-					author$project$HexView$landTypeToClass(tile.content.landType) + (' polygon-land ' + (A2(
+					author$project$HexView$landTypeToClass(tile.content.landType) + (' polygon-land ' + ((A2(
 						author$project$Hexagons$Main$axialIsEqual,
 						clicked,
-						elm$core$Maybe$Just(tile.coords)) ? 'selected-tile ' : ''))),
+						elm$core$Maybe$Just(tile.coords)) ? 'selected-tile ' : '') + ('height-' + elm$core$String$fromInt(tile.height))))),
 					elm$svg$Svg$Events$onClick(
 					author$project$Model$Click(tile)),
 					elm$svg$Svg$Events$onMouseOver(
@@ -5241,9 +5241,9 @@ var author$project$HexView$viewSheep = F2(
 				]),
 			_List_Nil);
 	});
-var author$project$Hexagons$Grid$Tile = F2(
-	function (content, coords) {
-		return {content: content, coords: coords};
+var author$project$Hexagons$Grid$Tile = F3(
+	function (content, coords, height) {
+		return {content: content, coords: coords, height: height};
 	});
 var elm$core$List$concatMap = F2(
 	function (f, list) {
@@ -5256,10 +5256,11 @@ var author$project$Hexagons$Grid$list = function (grid) {
 		function (i, _n1) {
 			var j = _n1.a;
 			var kind = _n1.b;
-			return A2(
+			return A3(
 				author$project$Hexagons$Grid$Tile,
 				kind,
-				_Utils_Tuple2(i, j));
+				_Utils_Tuple2(i, j),
+				0);
 		});
 	var mapRow = function (_n0) {
 		var i = _n0.a;

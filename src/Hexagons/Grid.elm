@@ -45,6 +45,7 @@ type alias Row a =
 type alias Tile a =
     { content : a
     , coords : Axial
+    , height : Int
     }
 
 
@@ -99,7 +100,7 @@ list grid =
             List.map (mapTile i) (Dict.toList row)
 
         mapTile i ( j, kind ) =
-            Tile kind ( i, j )
+            Tile kind ( i, j ) 0
     in
     List.concatMap mapRow rows
 

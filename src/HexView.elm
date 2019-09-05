@@ -108,6 +108,7 @@ viewHex size clicked tile =
                     else
                         ""
                    )
+                ++ "height-" ++ (String.fromInt tile.height)
             )
         , onClick <| Click tile
         , Svg.Events.onMouseOver <| Delete tile
